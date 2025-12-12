@@ -87,6 +87,9 @@ This repository contains the implementation and data for our research.
 
 **Option 1: Using the shell script (Recommended)**
 ```bash
+# Make the script executable (first time only, on macOS/Linux)
+chmod +x run.sh
+
 # Run with default parameters (London, 300 epochs)
 ./run.sh
 
@@ -99,6 +102,8 @@ This repository contains the implementation and data for our research.
 # See all available options
 ./run.sh --help
 ```
+
+**Note**: On Windows, you can use Git Bash or WSL to run the shell script, or use Option 2 (Python directly).
 
 **Option 2: Using Python directly**
 ```bash
@@ -134,11 +139,38 @@ python code/run.py --help
 
 ### Expected Output
 The demo will:
+- Display a formatted header with configuration summary
+- Show progress for each experiment (e.g., "Experiment 1/4")
 - Load charging data from specific cities (e.g., London)
 - Train meta-learning models with LSTM architecture
-- Display training progress and evaluation metrics
+- Display training progress with tqdm progress bars
+- Show evaluation metrics after each experiment
+- Display a summary table at the end with all experiment results
 - Save results to `results/` directory
 - Generate log files with detailed results in `results/log_desktop.txt`
+
+**Example output format:**
+```
+================================================================================
+  Meta-Learning Training for EV Charging Demand Prediction
+================================================================================
+📅 Start Time: 2025-01-12 18:30:00
+📋 Configuration:
+   Cities: London (1 city/cities)
+   ...
+================================================================================
+🔬 Experiment 1/1
+   City: London (伦敦)
+   Divide Mode: by_month
+================================================================================
+...
+✅ Experiment 1/1 completed in 15m 30s
+   Metrics (RMSE, MAE, MAPE, MedAE, R2, EVS): [0.123, ...]
+================================================================================
+  Experiment Summary
+================================================================================
+...
+```
 
 ### Expected Run Time
 - On a normal desktop computer (8GB RAM, CPU): 15-30 minutes
@@ -155,9 +187,8 @@ The demo will:
    - Ensure data is properly formatted (see data format section below)
 
 2. **Configure parameters**:
-   - Edit `code/run.py` to adjust model parameters
-   - Modify hyperparameters in `code/model/train.py`
-   - Update data paths if necessary
+   - Use command-line arguments (recommended): `--city`, `--epochs`, `--lr`, etc.
+   - Or modify hyperparameters in `code/model/train.py` for advanced customization
 
 3. **Run training**:
    ```bash
@@ -193,9 +224,12 @@ Your data should be in NumPy format (.npy files) with the following structure:
 - Update `code/run_baselines.py` for baseline model configurations
 
 ### Output Files
-- Model checkpoints: `code/model/pt_files/`
-- Training logs: Console output and log files
-- Predictions: Saved as NumPy arrays in the output directory
+All output files are saved in the `results/` directory:
+- **Model checkpoints**: `results/model/pt_files/` (if model saving is enabled)
+- **Prediction results**: `results/data/pre_result_<divide_mode>/<city>_<timestamp>.csv`
+- **Baseline results**: `results/baselines/<baseline_name>/<city>_<timestamp>.csv`
+- **Training logs**: `results/log_desktop.txt` (main training log)
+- **Baseline logs**: `results/log_<baseline>_test.txt` or `results/log_<baseline>.txt`
 
 ## Reproduction Instructions
 
@@ -216,11 +250,15 @@ Your data should be in NumPy format (.npy files) with the following structure:
 
 3. **Generate all baseline comparisons**:
    ```bash
+   # From project root directory
+   cd code
    python run_baselines.py
    ```
 
 4. **Run ARIMA experiments**:
    ```bash
+   # From project root directory
+   cd code
    python run_arima.py
    ```
 
