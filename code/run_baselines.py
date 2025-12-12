@@ -10,6 +10,10 @@ import os
 from model.train import meta_train_baselines
 from utils import seed_everything
 
+# Get the project root directory (parent of code directory)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+
 seed=2023
 
 city_dict = {
@@ -62,7 +66,8 @@ baselines=['FCNN','ours','FCNN_Meta_2','FGN','FGN_Meta',]
 
 if __name__ == '__main__':
     # Create results directory if it doesn't exist
-    results_dir = './results'
+    results_dir = os.path.join(PROJECT_ROOT, 'results')
+    data_dir = os.path.join(PROJECT_ROOT, 'data')
     os.makedirs(results_dir, exist_ok=True)
     
     for baseline in baselines:
@@ -76,8 +81,8 @@ if __name__ == '__main__':
                     support_epochs = 5
                     lr = 0.005
                     city_name_eng = city_dict[city][0]
-                    train_data=np.load('./data/'+folder_path+'/'+city_name_eng+'/train_data.npy',allow_pickle=True).item()
-                    test_data=np.load('./data/'+folder_path+'/'+city_name_eng+'/test_data.npy',allow_pickle=True).item()
+                    train_data=np.load(os.path.join(data_dir, folder_path, city_name_eng, 'train_data.npy'), allow_pickle=True).item()
+                    test_data=np.load(os.path.join(data_dir, folder_path, city_name_eng, 'test_data.npy'), allow_pickle=True).item()
                     f.writelines(
                         '\n' +'city:' + str(city) + '\n' +
                         'divide_mode:' + str(divide_mode) + '\n' +

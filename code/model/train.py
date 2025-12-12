@@ -18,6 +18,11 @@ from model.baselines import LSTMv1, FCNN, FGN
 from utils import CreateDataset, divide_dataset, calculate_metrics
 from model.lstm import MyLSTM
 
+# Get the project root directory (parent of code directory)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+CODE_DIR = os.path.dirname(SCRIPT_DIR)
+PROJECT_ROOT = os.path.dirname(CODE_DIR)
+
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 def day_to_date(year, day):
@@ -25,7 +30,9 @@ def day_to_date(year, day):
     zone = datetime.timedelta(days=day - 1)
     return datetime.datetime.strftime(fir_day + zone, "%Y-%m-%d")
 
-def meta_train(data,evaluation_data, batch_size, epochs,divide_mode,support_epochs,custom_epochs,log_file,mode, lr=0.005, city_name='',net_path='./results/model/pt_files/Meta_Net_'+time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) +'.pt',print_details=False,save_pre_result=True):
+def meta_train(data,evaluation_data, batch_size, epochs,divide_mode,support_epochs,custom_epochs,log_file,mode, lr=0.005, city_name='',net_path=None,print_details=False,save_pre_result=True):
+    if net_path is None:
+        net_path = os.path.join(PROJECT_ROOT, 'results', 'model', 'pt_files', 'Meta_Net_'+time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) +'.pt')
     station_id = list(data.keys())
     evaluation_station_id = list(evaluation_data.keys())
     net = MyLSTM().to(device)
@@ -281,8 +288,9 @@ def meta_train(data,evaluation_data, batch_size, epochs,divide_mode,support_epoc
                     pre_result_df.loc[pre_result_df['id'] == 's' + str(int(station)) + '-ori', day] = label_numpy[l]
                     pre_result_df.loc[pre_result_df['id'] == 's' + str(int(station)) + '-pre', day] = output_numpy[l]
         
-        os.makedirs('./results/data/pre_result_'+divide_mode+ '/', exist_ok=True)
-        pre_result_df.to_csv('./results/data/pre_result_'+divide_mode+ '/' + city_name+'_'+time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) + '.csv', index=False)
+        results_data_dir = os.path.join(PROJECT_ROOT, 'results', 'data', 'pre_result_'+divide_mode)
+        os.makedirs(results_data_dir, exist_ok=True)
+        pre_result_df.to_csv(os.path.join(results_data_dir, city_name+'_'+time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) + '.csv'), index=False)
     # torch.save(net.state_dict(),'model/pt_files/Meta_Net_'+city_name+'_'+time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) +'.pt')
 
 
@@ -549,10 +557,12 @@ def meta_train_baselines(data,evaluation_data, batch_size, epochs,divide_mode,su
                     day=str(day_to_date(2023,date_numpy[l][0]))
                     pre_result_df.loc[pre_result_df['id'] == 's' + str(int(station)) + '-ori', day] = label_numpy[l]
                     pre_result_df.loc[pre_result_df['id'] == 's' + str(int(station)) + '-pre', day] = output_numpy[l]
-        os.makedirs('./results/baselines/'+baseline_name+ '/', exist_ok=True)
-        pre_result_df.to_csv('./results/baselines/'+baseline_name+ '/' + city_name+'_'+time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) + '.csv', index=False)
+        results_baselines_dir = os.path.join(PROJECT_ROOT, 'results', 'baselines', baseline_name)
+        os.makedirs(results_baselines_dir, exist_ok=True)
+        pre_result_df.to_csv(os.path.join(results_baselines_dir, city_name+'_'+time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) + '.csv'), index=False)
 
-    os.makedirs('./results/model/baselines/' + baseline_name + '/', exist_ok=True)
+    results_model_baselines_dir = os.path.join(PROJECT_ROOT, 'results', 'model', 'baselines', baseline_name)
+    os.makedirs(results_model_baselines_dir, exist_ok=True)
     # torch.save(net.state_dict(),'model/baselines/' + baseline_name + '/Meta_Net_'+city_name+'_'+time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) +'.pt')
 
 
@@ -649,8 +659,9 @@ def baseline_arima_6days(data,evaluation_data, log_file,city_name='',baseline_na
         'AVG TEST: RMSE, MAE, MAPE, MedAE, R2,  EVS' + '\n' + str(total_matrix) + '\n'
     )
     log_file.flush()
-    os.makedirs('./results/baselines/' + baseline_name + '/', exist_ok=True)
-    pre_result_df.to_csv('./results/baselines/' + baseline_name + '/' + city_name + '_' + time.strftime("%Y-%m-%d-%H-%M-%S",time.localtime()) + '.csv',index=False)
+    results_baselines_dir = os.path.join(PROJECT_ROOT, 'results', 'baselines', baseline_name)
+    os.makedirs(results_baselines_dir, exist_ok=True)
+    pre_result_df.to_csv(os.path.join(results_baselines_dir, city_name + '_' + time.strftime("%Y-%m-%d-%H-%M-%S",time.localtime()) + '.csv'), index=False)
 
 
 
@@ -803,5 +814,6 @@ def baseline_arima_monthly(data,evaluation_data, log_file, city_name='',baseline
         'AVG TEST: RMSE, MAE, MAPE, MedAE, R2,  EVS' + '\n' + str(total_matrix) + '\n'
     )
     log_file.flush()
-    os.makedirs('./results/baselines/' + baseline_name + '/', exist_ok=True)
-    pre_result_df.to_csv('./results/baselines/' + baseline_name + '/' + city_name + '_' + time.strftime("%Y-%m-%d-%H-%M-%S",time.localtime()) + '.csv',index=False)
+    results_baselines_dir = os.path.join(PROJECT_ROOT, 'results', 'baselines', baseline_name)
+    os.makedirs(results_baselines_dir, exist_ok=True)
+    pre_result_df.to_csv(os.path.join(results_baselines_dir, city_name + '_' + time.strftime("%Y-%m-%d-%H-%M-%S",time.localtime()) + '.csv'), index=False)

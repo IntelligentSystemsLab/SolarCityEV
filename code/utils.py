@@ -19,6 +19,10 @@ from torch.utils.data import Dataset
 import geopandas as gpd
 import matplotlib.pyplot as plt
 
+# Get the project root directory (parent of code directory)
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+
 
 def seed_everything(seed):
     os.environ["PL_GLOBAL_SEED"] = str(seed)
@@ -150,8 +154,9 @@ def cluster_station(path, city, data, distance, plot=False, save_station=False):
         return_dict[i][1] = return_dict[i][1] / len(return_dict[i][0])
         return_dict[i][2] = return_dict[i][2] / len(return_dict[i][0])
     # Create results directory if it doesn't exist
-    os.makedirs('./results', exist_ok=True)
-    with open("./results/exp_240217.txt", "a", encoding='utf-8') as f:
+    results_dir = os.path.join(PROJECT_ROOT, 'results')
+    os.makedirs(results_dir, exist_ok=True)
+    with open(os.path.join(results_dir, "exp_240217.txt"), "a", encoding='utf-8') as f:
         f.writelines(
             '\n' + 'city:' + str(city) + '\n' +
             '半径:' + str(distance) + '\n' +
