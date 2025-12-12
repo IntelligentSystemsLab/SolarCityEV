@@ -149,7 +149,9 @@ def cluster_station(path, city, data, distance, plot=False, save_station=False):
     for i in set(data['cluster']):
         return_dict[i][1] = return_dict[i][1] / len(return_dict[i][0])
         return_dict[i][2] = return_dict[i][2] / len(return_dict[i][0])
-    with open("./exp_240217.txt", "a", encoding='utf-8') as f:
+    # Create results directory if it doesn't exist
+    os.makedirs('./results', exist_ok=True)
+    with open("./results/exp_240217.txt", "a", encoding='utf-8') as f:
         f.writelines(
             '\n' + 'city:' + str(city) + '\n' +
             '半径:' + str(distance) + '\n' +

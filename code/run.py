@@ -5,6 +5,7 @@
 # @Last Modified By   : GZH
 # @Last Modified Time : 2023/9/25 14:35
 import numpy as np
+import os
 from model.train import meta_train
 from utils import seed_everything
 
@@ -57,7 +58,11 @@ city_dict = {
 r_folder=['by_station']
 
 if __name__ == '__main__':
-    with open("/results/log_desktop.txt", "a", encoding='utf-8') as f:
+    # Create results directory if it doesn't exist
+    results_dir = './results'
+    os.makedirs(results_dir, exist_ok=True)
+    
+    with open(os.path.join(results_dir, "log_desktop.txt"), "a", encoding='utf-8') as f:
         folder_path=r_folder[0]
         seed_everything(seed=seed)
         # for city in city_dict.keys():
@@ -69,8 +74,8 @@ if __name__ == '__main__':
                 custom_epochs = 5
                 lr = 0.005
                 city_name_eng = city_dict[city][0]
-                train_data=np.load('/data/'+folder_path+'/'+city_name_eng+'/train_data.npy',allow_pickle=True).item()
-                test_data=np.load('/data/'+folder_path+'/'+city_name_eng+'/test_data.npy',allow_pickle=True).item()
+                train_data=np.load('./data/'+folder_path+'/'+city_name_eng+'/train_data.npy',allow_pickle=True).item()
+                test_data=np.load('./data/'+folder_path+'/'+city_name_eng+'/test_data.npy',allow_pickle=True).item()
                 f.writelines(
                     '\n' +'city:' + str(city) + '\n' +
                     'divide_mode:' + str(divide_mode) + '\n' +

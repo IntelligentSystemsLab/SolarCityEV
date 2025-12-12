@@ -5,6 +5,7 @@
 # @Last Modified By   : GZH
 # @Last Modified Time : 2024/10/12 13:36
 import numpy as np
+import os
 from model.train import baseline_arima_monthly
 from utils import seed_everything
 
@@ -57,8 +58,12 @@ r_folder=['by_station']
 baselines=['ARIMA_month']
 
 if __name__ == '__main__':
+    # Create results directory if it doesn't exist
+    results_dir = './results'
+    os.makedirs(results_dir, exist_ok=True)
+    
     for baseline in baselines:
-        with open(f"/results/log_{baseline}.txt", "a", encoding='utf-8') as f:
+        with open(os.path.join(results_dir, f"log_{baseline}.txt"), "a", encoding='utf-8') as f:
             seed_everything(seed=seed)
             folder_path=r_folder[0]
             for city in city_dict.keys():

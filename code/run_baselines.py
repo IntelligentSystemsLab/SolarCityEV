@@ -6,6 +6,7 @@
 # @Last Modified Time : 2024/10/10 16:45
 
 import numpy as np
+import os
 from model.train import meta_train_baselines
 from utils import seed_everything
 
@@ -60,8 +61,12 @@ r_folder=['by_station']
 baselines=['FCNN','ours','FCNN_Meta_2','FGN','FGN_Meta',]
 
 if __name__ == '__main__':
+    # Create results directory if it doesn't exist
+    results_dir = './results'
+    os.makedirs(results_dir, exist_ok=True)
+    
     for baseline in baselines:
-        with open(f"/results/log_{baseline}_test.txt", "a", encoding='utf-8') as f:
+        with open(os.path.join(results_dir, f"log_{baseline}_test.txt"), "a", encoding='utf-8') as f:
             seed_everything(seed=seed)
             folder_path=r_folder[0]
             custom_epochs = 5
