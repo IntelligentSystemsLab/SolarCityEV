@@ -1,6 +1,6 @@
 # SolarCityEV
 
-> **Code and data for "Dramatic carbon reduction from rooftop photovoltaic sharing of electric vehicles by 2050"**
+> **Code and data for "Coupling rooftop photovoltaics with electric vehicle charging accelerates decarbonisation"**
 
 ## Overview
 
