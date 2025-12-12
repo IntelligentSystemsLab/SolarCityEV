@@ -6,14 +6,13 @@
 # @Last Modified Time : 2023/9/25 14:35
 import numpy as np
 import os
+import argparse
 from model.train import meta_train
 from utils import seed_everything
 
 # Get the project root directory (parent of code directory)
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
-
-seed=2023
 
 city_dict = {
     '伦敦': ['London', 'UnitedKingdom',],
@@ -58,51 +57,98 @@ city_dict = {
     '波士顿': ['Boston', 'UnitedStates',],
 }
 
+# Create reverse mapping from English city name to Chinese name
+city_eng_to_chn = {city_dict[chn][0]: chn for chn in city_dict.keys()}
+available_cities_eng = sorted(city_eng_to_chn.keys())
 
-r_folder=['by_station']
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Train meta-learning model for EV charging demand prediction')
+    
+    parser.add_argument('--city', type=str, nargs='+', default=['London'], 
+                        help='City name(s) in English (default: London). Can specify multiple cities. Available cities: ' + ', '.join(available_cities_eng))
+    parser.add_argument('--epochs', type=int, default=300,
+                        help='Number of training epochs (default: 300)')
+    parser.add_argument('--support_epochs', type=int, default=5,
+                        help='Number of support epochs (default: 5)')
+    parser.add_argument('--custom_epochs', type=int, default=5,
+                        help='Number of custom epochs (default: 5)')
+    parser.add_argument('--lr', type=float, default=0.005,
+                        help='Learning rate (default: 0.005)')
+    parser.add_argument('--divide_mode', type=str, nargs='+', default=['by_month'], choices=['by_month', 'by_day'],
+                        help='Data division mode(s) (default: by_month). Can specify multiple modes: by_month and/or by_day')
+    parser.add_argument('--folder_path', type=str, default='by_station',
+                        help='Data folder path (default: by_station)')
+    parser.add_argument('--seed', type=int, default=2023,
+                        help='Random seed (default: 2023)')
+    parser.add_argument('--batch_size', type=int, default=None,
+                        help='Batch size (default: None)')
+    parser.add_argument('--print_details', action='store_true',
+                        help='Print detailed training information')
+    
+    return parser.parse_args()
 
 if __name__ == '__main__':
+    args = parse_args()
+    
+    # Ensure city and divide_mode are lists
+    cities_eng = args.city if isinstance(args.city, list) else [args.city]
+    divide_modes = args.divide_mode if isinstance(args.divide_mode, list) else [args.divide_mode]
+    
+    # Validate city names (English) and convert to Chinese names
+    cities_chn = []
+    for city_eng in cities_eng:
+        if city_eng not in city_eng_to_chn:
+            print(f"Error: City '{city_eng}' not found.")
+            print(f"Available cities (English): {', '.join(available_cities_eng)}")
+            exit(1)
+        cities_chn.append(city_eng_to_chn[city_eng])
+    
+    # Validate divide_modes
+    valid_modes = ['by_month', 'by_day']
+    for mode in divide_modes:
+        if mode not in valid_modes:
+            print(f"Error: Invalid divide_mode '{mode}'. Must be one of: {', '.join(valid_modes)}")
+            exit(1)
+    
     # Create results directory if it doesn't exist
     results_dir = os.path.join(PROJECT_ROOT, 'results')
     data_dir = os.path.join(PROJECT_ROOT, 'data')
     os.makedirs(results_dir, exist_ok=True)
     
     with open(os.path.join(results_dir, "log_desktop.txt"), "a", encoding='utf-8') as f:
-        folder_path=r_folder[0]
-        seed_everything(seed=seed)
-        # for city in city_dict.keys():
-        for city in ['伦敦']:
-            for divide_mode in ['by_month']:
-                # epochs = 300
-                epochs = 1
-                support_epochs = 5
-                custom_epochs = 5
-                lr = 0.005
-                city_name_eng = city_dict[city][0]
-                train_data=np.load(os.path.join(data_dir, folder_path, city_name_eng, 'train_data.npy'), allow_pickle=True).item()
-                test_data=np.load(os.path.join(data_dir, folder_path, city_name_eng, 'test_data.npy'), allow_pickle=True).item()
+        seed_everything(seed=args.seed)
+        
+        # Iterate over cities and divide_modes
+        for city_eng, city_chn in zip(cities_eng, cities_chn):
+            for divide_mode in divide_modes:
+                train_data = np.load(os.path.join(data_dir, args.folder_path, city_eng, 'train_data.npy'), allow_pickle=True).item()
+                test_data = np.load(os.path.join(data_dir, args.folder_path, city_eng, 'test_data.npy'), allow_pickle=True).item()
+                
                 f.writelines(
-                    '\n' +'city:' + str(city) + '\n' +
+                    '\n' + 'city:' + str(city_eng) + '\n' +
                     'divide_mode:' + str(divide_mode) + '\n' +
-                    'folder_path:' + str(folder_path) + '\n' +
-                    'epochs:' + str(epochs) + '\n' +
-                    'support_epochs:' + str(support_epochs) + '\n' +
-                    'custom_epochs:' + str(custom_epochs) + '\n' +
-                    'lr:' + str(lr) + '\n'
+                    'folder_path:' + str(args.folder_path) + '\n' +
+                    'epochs:' + str(args.epochs) + '\n' +
+                    'support_epochs:' + str(args.support_epochs) + '\n' +
+                    'custom_epochs:' + str(args.custom_epochs) + '\n' +
+                    'lr:' + str(args.lr) + '\n' +
+                    'seed:' + str(args.seed) + '\n'
                 )
                 f.flush()
-                total_matrix=meta_train(
+                
+                total_matrix = meta_train(
                     data=train_data,
                     evaluation_data=test_data,
-                    batch_size=None,
-                    epochs=epochs,
-                    support_epochs=support_epochs,
-                    custom_epochs=custom_epochs,
-                    lr=lr,
-                    print_details=False,
+                    batch_size=args.batch_size,
+                    epochs=args.epochs,
+                    support_epochs=args.support_epochs,
+                    custom_epochs=args.custom_epochs,
+                    lr=args.lr,
+                    print_details=args.print_details,
                     log_file=f,
-                    mode=folder_path,
+                    mode=args.folder_path,
                     divide_mode=divide_mode,
-                    city_name=city_name_eng
+                    city_name=city_eng
                 )
         f.close()

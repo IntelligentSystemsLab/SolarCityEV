@@ -84,24 +84,61 @@ This repository contains the implementation and data for our research.
 ## Demo
 
 ### Quick Start
-1. Navigate to the code directory:
-   ```bash
-   cd code
-   ```
 
-2. Run the demo script:
-   ```bash
-   python run.py
-   ```
+**Option 1: Using the shell script (Recommended)**
+```bash
+# Run with default parameters (London, 300 epochs)
+./run.sh
+
+# Run with custom parameters
+./run.sh --city London --epochs 100 --lr 0.001
+
+# Run with multiple cities and divide modes
+./run.sh --city London Paris NewYork --divide_mode by_month by_day
+
+# See all available options
+./run.sh --help
+```
+
+**Option 2: Using Python directly**
+```bash
+# From project root directory
+python code/run.py
+
+# With custom parameters
+python code/run.py --city London --epochs 100 --support_epochs 5 --lr 0.005
+
+# With multiple cities and divide modes
+python code/run.py --city London Paris --divide_mode by_month by_day --epochs 100
+
+# See all available options
+python code/run.py --help
+```
+
+### Command Line Arguments
+
+- `--city`: City name(s) in English (default: London). Can specify multiple cities. Available cities include: London, Warsaw, Washington, Copenhagen, SaoPaulo, Melbourne, Toronto, Oslo, Paris, Sydney, Munich, Stockholm, SanFrancisco, Berlin, LosAngeles, Shenzhen, Ottawa, Honolulu, TelAviv, Milan, Johannesburg, NewYork, Vienna, Rome, Zurich, Montreal, Seattle, Helsinki, Miami, Dubai, Dublin, Amsterdam, Athens, Reykjavik, Madrid, Boston, etc.
+  - Example: `--city London` or `--city London Paris NewYork`
+- `--epochs`: Number of training epochs (default: 300)
+- `--support_epochs`: Number of support epochs (default: 5)
+- `--custom_epochs`: Number of custom epochs (default: 5)
+- `--lr`: Learning rate (default: 0.005)
+- `--divide_mode`: Data division mode(s) (default: by_month). Can specify multiple modes: `by_month` and/or `by_day`
+  - Example: `--divide_mode by_month` or `--divide_mode by_month by_day`
+- `--folder_path`: Data folder path (default: by_station)
+- `--seed`: Random seed for reproducibility (default: 2023)
+- `--batch_size`: Batch size (default: None, uses default batch size)
+- `--print_details`: Print detailed training information
+
+**Note**: When multiple cities and/or divide_modes are specified, the script will iterate over all combinations. For example, `--city London Paris --divide_mode by_month by_day` will run 4 experiments (2 cities × 2 modes).
 
 ### Expected Output
 The demo will:
 - Load charging data from specific cities (e.g., London)
 - Train meta-learning models with LSTM architecture
-- Run baseline comparisons (FCNN, FGN, ARIMA)
 - Display training progress and evaluation metrics
-- Save model checkpoints to `model/pt_files/`
-- Generate log files with detailed results
+- Save results to `results/` directory
+- Generate log files with detailed results in `results/log_desktop.txt`
 
 ### Expected Run Time
 - On a normal desktop computer (8GB RAM, CPU): 15-30 minutes
@@ -124,20 +161,24 @@ The demo will:
 
 3. **Run training**:
    ```bash
-   cd code
-   python run.py
+   # Using shell script (from project root)
+   ./run.sh --city London --epochs 300
+   
+   # Or using Python directly
+   python code/run.py --city London --epochs 300
    ```
 
 4. **Run specific models**:
    ```bash
    # Run ARIMA baseline
+   cd code
    python run_arima.py
    
    # Run all baseline models (FCNN, FGN, etc.)
    python run_baselines.py
    
-   # Run main meta-learning training
-   python run.py
+   # Run main meta-learning training with custom parameters
+   python run.py --city London --epochs 300 --lr 0.005
    ```
 
 ### Data Format
@@ -166,8 +207,11 @@ Your data should be in NumPy format (.npy files) with the following structure:
 
 2. **Run the complete experiment**:
    ```bash
-   cd code
-   python run.py
+   # From project root directory
+   ./run.sh --city London --epochs 300
+   
+   # Or using Python directly
+   python code/run.py --city London --epochs 300
    ```
 
 3. **Generate all baseline comparisons**:
