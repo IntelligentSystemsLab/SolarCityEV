@@ -7,6 +7,8 @@
 import numpy as np
 import os
 import argparse
+import time
+from datetime import datetime
 from model.train import meta_train
 from utils import seed_everything
 
@@ -88,8 +90,30 @@ def parse_args():
     
     return parser.parse_args()
 
+def print_separator(char='=', length=80):
+    """Print a separator line."""
+    print(char * length)
+
+def print_header(text, char='='):
+    """Print a formatted header."""
+    print_separator(char)
+    print(f"  {text}")
+    print_separator(char)
+
+def format_time(seconds):
+    """Format seconds into human-readable time."""
+    if seconds < 60:
+        return f"{seconds:.1f}s"
+    elif seconds < 3600:
+        return f"{int(seconds // 60)}m {int(seconds % 60)}s"
+    else:
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        return f"{hours}h {minutes}m"
+
 if __name__ == '__main__':
     args = parse_args()
+    start_time = time.time()
     
     # Ensure city and divide_mode are lists
     cities_eng = args.city if isinstance(args.city, list) else [args.city]
@@ -99,7 +123,7 @@ if __name__ == '__main__':
     cities_chn = []
     for city_eng in cities_eng:
         if city_eng not in city_eng_to_chn:
-            print(f"Error: City '{city_eng}' not found.")
+            print(f"\n❌ Error: City '{city_eng}' not found.")
             print(f"Available cities (English): {', '.join(available_cities_eng)}")
             exit(1)
         cities_chn.append(city_eng_to_chn[city_eng])
@@ -108,7 +132,7 @@ if __name__ == '__main__':
     valid_modes = ['by_month', 'by_day']
     for mode in divide_modes:
         if mode not in valid_modes:
-            print(f"Error: Invalid divide_mode '{mode}'. Must be one of: {', '.join(valid_modes)}")
+            print(f"\n❌ Error: Invalid divide_mode '{mode}'. Must be one of: {', '.join(valid_modes)}")
             exit(1)
     
     # Create results directory if it doesn't exist
@@ -116,39 +140,145 @@ if __name__ == '__main__':
     data_dir = os.path.join(PROJECT_ROOT, 'data')
     os.makedirs(results_dir, exist_ok=True)
     
+    # Print header and configuration
+    print_header("Meta-Learning Training for EV Charging Demand Prediction", '=')
+    print(f"\n📅 Start Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"\n📋 Configuration:")
+    print(f"   Cities: {', '.join(cities_eng)} ({len(cities_eng)} city/cities)")
+    print(f"   Divide Modes: {', '.join(divide_modes)} ({len(divide_modes)} mode(s))")
+    print(f"   Total Experiments: {len(cities_eng) * len(divide_modes)}")
+    print(f"   Epochs: {args.epochs}")
+    print(f"   Support Epochs: {args.support_epochs}")
+    print(f"   Custom Epochs: {args.custom_epochs}")
+    print(f"   Learning Rate: {args.lr}")
+    print(f"   Batch Size: {args.batch_size if args.batch_size else 'Default'}")
+    print(f"   Seed: {args.seed}")
+    print(f"   Data Path: {args.folder_path}")
+    print_separator('-')
+    
+    # Store results for summary
+    experiment_results = []
+    
     with open(os.path.join(results_dir, "log_desktop.txt"), "a", encoding='utf-8') as f:
         seed_everything(seed=args.seed)
         
         # Iterate over cities and divide_modes
-        for city_eng, city_chn in zip(cities_eng, cities_chn):
-            for divide_mode in divide_modes:
-                train_data = np.load(os.path.join(data_dir, args.folder_path, city_eng, 'train_data.npy'), allow_pickle=True).item()
-                test_data = np.load(os.path.join(data_dir, args.folder_path, city_eng, 'test_data.npy'), allow_pickle=True).item()
+        total_experiments = len(cities_eng) * len(divide_modes)
+        experiment_num = 0
+        
+        for city_idx, (city_eng, city_chn) in enumerate(zip(cities_eng, cities_chn), 1):
+            for mode_idx, divide_mode in enumerate(divide_modes, 1):
+                experiment_num += 1
+                exp_start_time = time.time()
                 
-                f.writelines(
-                    '\n' + 'city:' + str(city_eng) + '\n' +
-                    'divide_mode:' + str(divide_mode) + '\n' +
-                    'folder_path:' + str(args.folder_path) + '\n' +
-                    'epochs:' + str(args.epochs) + '\n' +
-                    'support_epochs:' + str(args.support_epochs) + '\n' +
-                    'custom_epochs:' + str(args.custom_epochs) + '\n' +
-                    'lr:' + str(args.lr) + '\n' +
-                    'seed:' + str(args.seed) + '\n'
-                )
-                f.flush()
+                print(f"\n{'='*80}")
+                print(f"🔬 Experiment {experiment_num}/{total_experiments}")
+                print(f"   City: {city_eng} ({city_chn})")
+                print(f"   Divide Mode: {divide_mode}")
+                print(f"{'='*80}\n")
                 
-                total_matrix = meta_train(
-                    data=train_data,
-                    evaluation_data=test_data,
-                    batch_size=args.batch_size,
-                    epochs=args.epochs,
-                    support_epochs=args.support_epochs,
-                    custom_epochs=args.custom_epochs,
-                    lr=args.lr,
-                    print_details=args.print_details,
-                    log_file=f,
-                    mode=args.folder_path,
-                    divide_mode=divide_mode,
-                    city_name=city_eng
-                )
+                try:
+                    # Load data
+                    data_path = os.path.join(data_dir, args.folder_path, city_eng)
+                    train_file = os.path.join(data_path, 'train_data.npy')
+                    test_file = os.path.join(data_path, 'test_data.npy')
+                    
+                    if not os.path.exists(train_file) or not os.path.exists(test_file):
+                        print(f"⚠️  Warning: Data files not found for {city_eng}")
+                        print(f"   Expected: {train_file}")
+                        print(f"   Expected: {test_file}")
+                        continue
+                    
+                    print(f"📂 Loading data from: {data_path}")
+                    train_data = np.load(train_file, allow_pickle=True).item()
+                    test_data = np.load(test_file, allow_pickle=True).item()
+                    print("✅ Data loaded successfully")
+                    
+                    # Write to log file
+                    f.writelines(
+                        '\n' + '='*80 + '\n' +
+                        f'Experiment {experiment_num}/{total_experiments}\n' +
+                        f'Start Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}\n' +
+                        'city:' + str(city_eng) + '\n' +
+                        'divide_mode:' + str(divide_mode) + '\n' +
+                        'folder_path:' + str(args.folder_path) + '\n' +
+                        'epochs:' + str(args.epochs) + '\n' +
+                        'support_epochs:' + str(args.support_epochs) + '\n' +
+                        'custom_epochs:' + str(args.custom_epochs) + '\n' +
+                        'lr:' + str(args.lr) + '\n' +
+                        'seed:' + str(args.seed) + '\n' +
+                        '='*80 + '\n'
+                    )
+                    f.flush()
+                    
+                    # Run training
+                    print("\n🚀 Starting training...")
+                    total_matrix = meta_train(
+                        data=train_data,
+                        evaluation_data=test_data,
+                        batch_size=args.batch_size,
+                        epochs=args.epochs,
+                        support_epochs=args.support_epochs,
+                        custom_epochs=args.custom_epochs,
+                        lr=args.lr,
+                        print_details=args.print_details,
+                        log_file=f,
+                        mode=args.folder_path,
+                        divide_mode=divide_mode,
+                        city_name=city_eng
+                    )
+                    
+                    exp_time = time.time() - exp_start_time
+                    experiment_results.append({
+                        'city': city_eng,
+                        'divide_mode': divide_mode,
+                        'metrics': total_matrix,
+                        'time': exp_time,
+                        'status': 'Success'
+                    })
+                    
+                    print(f"\n✅ Experiment {experiment_num}/{total_experiments} completed in {format_time(exp_time)}")
+                    if total_matrix is not None:
+                        print(f"   Metrics (RMSE, MAE, MAPE, MedAE, R2, EVS): {total_matrix}")
+                    
+                except Exception as e:
+                    exp_time = time.time() - exp_start_time
+                    experiment_results.append({
+                        'city': city_eng,
+                        'divide_mode': divide_mode,
+                        'metrics': None,
+                        'time': exp_time,
+                        'status': f'Failed: {str(e)}'
+                    })
+                    print(f"\n❌ Experiment {experiment_num}/{total_experiments} failed after {format_time(exp_time)}")
+                    print(f"   Error: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+        
         f.close()
+    
+    # Print summary
+    total_time = time.time() - start_time
+    print_separator('=')
+    print_header("Experiment Summary", '=')
+    print(f"\n📊 Total Experiments: {len(experiment_results)}")
+    print(f"⏱️  Total Time: {format_time(total_time)}")
+    print(f"\n{'City':<15} {'Mode':<12} {'Status':<20} {'Time':<12}")
+    print('-' * 60)
+    
+    success_count = 0
+    for result in experiment_results:
+        if result['status'] == 'Success':
+            success_count += 1
+            status = "✅ Success"
+        else:
+            status = f"❌ {result['status']}"
+        print(f"{result['city']:<15} {result['divide_mode']:<12} {status:<20} {format_time(result['time']):<12}")
+    
+    print('-' * 60)
+    print(f"\n✅ Successful: {success_count}/{len(experiment_results)}")
+    print(f"❌ Failed: {len(experiment_results) - success_count}/{len(experiment_results)}")
+    print(f"\n📁 Results saved to: {results_dir}")
+    print(f"📝 Log file: {os.path.join(results_dir, 'log_desktop.txt')}")
+    print_separator('=')
+    print("\n🎉 All experiments completed!\n")
