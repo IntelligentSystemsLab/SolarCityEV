@@ -24,12 +24,7 @@ This repository contains the implementation and data for our research.
 
 ### Software Dependencies
 - Python ≥ 3.8
-- PyTorch ≥ 1.9.0
-- NumPy ≥ 1.19.0
-- Pandas ≥ 1.3.0
-- Scikit-learn ≥ 0.24.0
-- Matplotlib ≥ 3.3.0
-- Seaborn ≥ 0.11.0
+- See `requirements.txt` for the complete list of Python package dependencies
 
 ### Operating Systems
 - Windows 10/11
