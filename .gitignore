@@ -44,7 +44,6 @@ wheels/
 # Results and logs
 /results/
 *.log
-*.txt
 
 # Data (if large files should not be committed)
 # Uncomment if needed:
