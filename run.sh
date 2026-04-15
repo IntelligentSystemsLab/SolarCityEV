@@ -10,7 +10,7 @@ SUPPORT_EPOCHS=5
 CUSTOM_EPOCHS=5
 LR=0.005
 DIVIDE_MODE_ARGS=("by_month")
-FOLDER_PATH="by_station"
+FOLDER_PATH="charging_data/by_station"
 SEED=2023
 BATCH_SIZE=""
 PRINT_DETAILS=""
@@ -78,7 +78,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --lr RATE                Learning rate (default: 0.005)"
             echo "  --divide_mode MODE [MODE ...]  Data division mode(s) (default: by_month)"
             echo "                           Can specify multiple modes: --divide_mode by_month by_day"
-            echo "  --folder_path PATH       Data folder path (default: by_station)"
+            echo "  --folder_path PATH       Data folder path (default: charging_data/by_station)"
             echo "  --seed N                 Random seed (default: 2023)"
             echo "  --batch_size N           Batch size (default: None)"
             echo "  --print_details          Print detailed training information"

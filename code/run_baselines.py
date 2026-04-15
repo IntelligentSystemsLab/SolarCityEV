@@ -60,7 +60,7 @@ city_dict = {
 }
 
 
-r_folder=['by_station']
+r_folder=['charging_data/by_station']
 
 baselines=['FCNN','ours','FCNN_Meta_2','FGN','FGN_Meta',]
 

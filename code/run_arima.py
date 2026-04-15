@@ -58,7 +58,7 @@ city_dict = {
     '深圳': ['Shenzhen', 'China',],
 }
 
-r_folder=['by_station']
+r_folder=['charging_data/by_station']
 baselines=['ARIMA_month']
 
 if __name__ == '__main__':

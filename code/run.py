@@ -79,8 +79,8 @@ def parse_args():
                         help='Learning rate (default: 0.005)')
     parser.add_argument('--divide_mode', type=str, nargs='+', default=['by_month'], choices=['by_month', 'by_day'],
                         help='Data division mode(s) (default: by_month). Can specify multiple modes: by_month and/or by_day')
-    parser.add_argument('--folder_path', type=str, default='by_station',
-                        help='Data folder path (default: by_station)')
+    parser.add_argument('--folder_path', type=str, default='charging_data/by_station',
+                        help='Data folder path (default: charging_data/by_station)')
     parser.add_argument('--seed', type=int, default=2023,
                         help='Random seed (default: 2023)')
     parser.add_argument('--batch_size', type=int, default=None,

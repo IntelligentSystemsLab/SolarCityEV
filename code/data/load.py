@@ -164,7 +164,7 @@ def load_data(city_name,start_date,end_date,path='./data/',rate=0.7,by_station=T
         else:
             test_data[cluster_id] = all_data[cluster_id]
     if by_station:
-        folder_path='by_station'
+        folder_path='charging_data/by_station'
     else:
         folder_path='by_hexagon'
     folder = os.path.exists(path+folder_path+'/'+city_name_eng)

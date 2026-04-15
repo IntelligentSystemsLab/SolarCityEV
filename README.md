@@ -130,7 +130,7 @@ python code/run.py --help
 - `--lr`: Learning rate (default: 0.005)
 - `--divide_mode`: Data division mode(s) (default: by_month). Can specify multiple modes: `by_month` and/or `by_day`
   - Example: `--divide_mode by_month` or `--divide_mode by_month by_day`
-- `--folder_path`: Data folder path (default: by_station)
+- `--folder_path`: Data folder path (default: charging_data/by_station)
 - `--seed`: Random seed for reproducibility (default: 2023)
 - `--batch_size`: Batch size (default: None, uses default batch size)
 - `--print_details`: Print detailed training information
@@ -236,7 +236,7 @@ All output files are saved in the `results/` directory:
 ### Reproducing Paper Results
 
 1. **Download the complete dataset**:
-   - Ensure all city data is present in `data/by_station/`
+   - Ensure all city data is present in `data/charging_data/by_station/`
    - Verify data integrity and format
 
 2. **Run the complete experiment**:
